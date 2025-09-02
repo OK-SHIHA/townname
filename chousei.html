@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>⚙️ 調整中です</title>
+  <style>
+    :root{
+      --bg:#0f1221; /* 深めの紺 */
+      --panel:#161a2f;
+      --soft:#1f2543;
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+      --text:#e8ecff;
+      --muted:#9aa5d1;
+      --glow: 0 10px 30px rgba(110,231,255,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      min-height:100vh; min-height:100dvh; /* iOS Safari 対応 */
+      display:grid; place-items:center;  /* 完全中央配置 */
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Hiragino Sans","Hiragino Kaku Gothic ProN",Meiryo,system-ui,sans-serif;
+      color:var(--text);
+      background: radial-gradient(1200px 800px at 10% 10%, #141830 0%, #0d1020 60%, #090b17 100%);
+    }
+
+    /* ====== Title ====== */
+    .title{
+      font-weight:900;
+      font-size:clamp(36px,8vw,88px);
+      line-height:1.1;
+      letter-spacing:.02em;
+      background:linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+      text-shadow:0 6px 30px rgba(110,231,255,.18);
+      user-select:none; text-align:center;
+      margin: 0 0 .25em 0;
+    }
+    .dots{display:inline-block; width:24px; text-align:left}
+    .dots::after{content:"…"; animation:dots 1.2s steps(4,end) infinite}
+    @keyframes dots{0%{content:""}25%{content:"."}50%{content:".."}75%{content:"..."}100%{content:""}}
+
+    /* ====== Scene Layout ====== */
+    .scene{width:min(880px,92vw); padding:20px; border-radius:20px;}
+
+    /* ====== Crane (簡易クレーン) ====== */
+    .crane{position:relative; height:170px; margin:0 auto 18px; width:86%;}
+    .beam{position:absolute; left:4%; right:4%; top:8px; height:6px; border-radius:4px; background:linear-gradient(90deg, rgba(110,231,255,.35), rgba(167,139,250,.35)); box-shadow:var(--glow)}
+    .pillar{position:absolute; left:4%; top:14px; width:8px; height:130px; background:rgba(255,255,255,.08); border-radius:4px}
+
+    /* === ここから連動化 === */
+    .carriage{
+      position:absolute;
+      top:-6px;        /* 旧 .trolley のtopと一致させて見た目を維持 */
+      left:4%;
+      width:64px;
+      height:34px;     /* 台車のサイズ＝支点位置の基準 */
+      animation:slideX 6s ease-in-out infinite; /* 横移動はキャリッジに一本化 */
+    }
+
+    .trolley{
+      position:absolute; inset:0;
+      background:var(--panel);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:10px;
+      box-shadow:0 8px 20px rgba(0,0,0,.35);
+      display:grid; place-items:center;
+    }
+    .trolley::after{content:""; position:absolute; inset:5px; border-radius:8px; background:linear-gradient(180deg,#1b2140,#141a34)}
+
+    /* ケーブル：高さをアニメで可変 → 末端に振り子を付けて追従 */
+    .cableWrap{
+      position:absolute;
+      left:50%; top:34px;           /* 台車の底面に合わせる（34px=台車高） */
+      width:2px; height:110px;      /* 基準長 */
+      margin-left:-1px;
+      animation:cableLen 6s ease-in-out infinite;
+    }
+    .cable{
+      position:absolute; top:0; left:0; right:0;
+      width:2px; height:100%;
+      background:linear-gradient(#a3b0e0, #5f6aa0);
+      box-shadow:0 0 0 1px rgba(255,255,255,.05);
+    }
+
+    /* ケーブル末端を支点にした振り子（フック＋荷） */
+    .pendulum{
+      position:absolute; left:50%; top:100%;
+      transform:translateX(-50%);
+      transform-origin: top center;
+      animation:swing 2.4s ease-in-out infinite;
+    }
+    .hook{
+      position:absolute; top:0; left:50%;
+      width:22px; height:22px;
+      margin-left:-11px;
+      border-left:3px solid #9aa5d1;
+      border-bottom:3px solid #9aa5d1;
+      border-radius:0 0 8px 8px;
+    }
+    .load{
+      position:absolute; top:16px; left:50%;
+      width:98px; height:16px; margin-left:-49px;
+      background:linear-gradient(180deg,#1e2750,#151b36);
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:8px;
+      box-shadow:0 10px 30px rgba(0,0,0,.4);
+      animation:loadY 6s ease-in-out infinite;
+    }
+
+    /* クレーンアニメーション（連動版） */
+    @keyframes slideX{ 0%{left:4%} 50%{left:72%} 100%{left:4%} }
+    /* 旧scaleY(.75→1.05)と同等の実寸変化（110px基準で約82→116px） */
+    @keyframes cableLen{ 0%,100%{height:82px} 50%{height:116px} }
+    @keyframes swing{ 0%{transform:translateX(-50%) rotate(4deg)} 50%{transform:translateX(-50%) rotate(-4deg)} 100%{transform:translateX(-50%) rotate(4deg)} }
+    @keyframes loadY{ 0%,100%{transform:translateY(6px)} 50%{transform:translateY(30px)} }
+
+    /* ====== Build Stack (積み上げ) ====== */
+    .stack{position:relative; height:130px; display:flex; align-items:flex-end; justify-content:center; gap:10px; margin: 0 auto 10px;}
+    .ground{position:absolute; left:6%; right:6%; bottom:0; height:2px; background:rgba(255,255,255,.18); box-shadow:0 0 12px rgba(110,231,255,.12)}
+    .box{width:96px; height:56px; border-radius:10px; background:linear-gradient(180deg,#222a54,#181f3f); border:1px solid rgba(255,255,255,.12); box-shadow:inset 0 8px 16px rgba(255,255,255,.04), 0 12px 30px rgba(0,0,0,.35)}
+    .b1{animation:drop1 4.5s ease-in-out infinite .2s}
+    .b2{animation:drop2 4.5s ease-in-out infinite .8s}
+    .b3{animation:drop3 4.5s ease-in-out infinite 1.4s}
+    @keyframes drop1{ 0%{transform:translateY(-80px)} 14%{transform:translateY(0)} 20%{transform:translateY(-10px)} 26%{transform:translateY(0)} 100%{transform:translateY(0)} }
+    @keyframes drop2{ 0%{transform:translateY(-90px)} 18%{transform:translateY(0)} 24%{transform:translateY(-10px)} 30%{transform:translateY(0)} 100%{transform:translateY(0)} }
+    @keyframes drop3{ 0%{transform:translateY(-70px)} 12%{transform:translateY(0)} 18%{transform:translateY(-8px)} 24%{transform:translateY(0)} 100%{transform:translateY(0)} }
+
+    /* ====== Gears (簡易) ====== */
+    .gears{display:flex; gap:10px; justify-content:center; align-items:center; margin:10px 0 4px; opacity:.9}
+    .gear{display:inline-flex; font-size:22px; filter:drop-shadow(0 6px 14px rgba(110,231,255,.15))}
+    .gear:nth-child(1){animation:spin 6s linear infinite}
+    .gear:nth-child(2){animation:spinReverse 6s linear infinite}
+    .gear:nth-child(3){animation:spin 8s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    @keyframes spinReverse{to{transform:rotate(-360deg)}}
+
+    /* ====== HUD ====== */
+    .subline{margin:.2em 0 .8em; text-align:center; color:var(--muted); font-weight:600}
+    .progress{position:relative; height:10px; width:min(560px,84vw); margin:0 auto 6px; border-radius:999px; background:rgba(255,255,255,.08); overflow:hidden; border:1px solid rgba(255,255,255,.06)}
+    .bar{position:absolute; inset:0; width:0%; background:linear-gradient(90deg, var(--accent), var(--accent2)); box-shadow:var(--glow); animation:loadBar 4.5s ease-in-out infinite}
+    @keyframes loadBar{ 0%{width:0%} 60%{width:100%} 100%{width:100%} }
+
+    /* アクセシビリティ：動きを抑制 */
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none !important; transition:none !important}
+    }
+  </style>
+</head>
+<body>
+  <div class="scene" aria-live="polite">
+    <!-- クレーン・アセンブリ -->
+    <div class="crane" aria-hidden="true">
+      <div class="beam"></div>
+      <div class="pillar"></div>
+
+      <!-- 連動させたキャリッジ -->
+      <div class="carriage">
+        <div class="trolley"></div>
+        <div class="cableWrap">
+          <div class="cable"></div>
+          <div class="pendulum">
+            <div class="hook"></div>
+            <div class="load"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- タイトル -->
+    <h1 class="title">調整中です<span class="dots" aria-hidden="true"></span></h1>
+
+    <!-- 歯車＆進捗 -->
+    <div class="gears" aria-hidden="true">
+      <span class="gear">⚙️</span><span class="gear">⚙️</span><span class="gear">⚙️</span>
+    </div>
+    <p class="subline"><span id="step">モジュールを準備中</span></p>
+    <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="組み立て進捗">
+      <div class="bar" id="bar"></div>
+    </div>
+
+    <!-- 積み上げボックス -->
+    <div class="stack" aria-hidden="true">
+      <div class="ground"></div>
+      <div class="box b1"></div>
+      <div class="box b2"></div>
+      <div class="box b3"></div>
+    </div>
+  </div>
+
+  <script>
+    // ステップメッセージを巡回
+    const steps = [
+      '部材を搬入中',
+      'フレームを組み立て中',
+      '配線・設定を最適化中',
+      '仕上げに磨きをかけています'
+    ];
+    let i = 0; const stepEl = document.getElementById('step');
+    const barEl = document.getElementById('bar');
+
+    function cycle(){
+      i = (i + 1) % steps.length;
+      stepEl.textContent = steps[i];
+    }
+
+    // アリア値を更新しつつプログレス繰り返し
+    let t0 = performance.now();
+    function tick(){
+      const t = (performance.now() - t0) / 4500; // 4.5s周期
+      const p = Math.min(1, (t % 1) * 1.0);
+      barEl.style.width = (p * 100).toFixed(0) + '%';
+      document.querySelector('.progress').setAttribute('aria-valuenow', (p*100).toFixed(0));
+      requestAnimationFrame(tick);
+    }
+
+    setInterval(cycle, 1600);
+    requestAnimationFrame(tick);
+  </script>
+</body>
+</html>
